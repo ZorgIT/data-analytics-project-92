@@ -62,8 +62,7 @@ WITH avg_income AS (
 ),
 
 total_avg_income AS (
-    SELECT
-        AVG(average_income) AS overall_average_income
+    SELECT AVG(average_income) AS overall_average_income
     FROM
         avg_income
 )
@@ -86,12 +85,12 @@ ORDER BY
 WITH income_sales AS (
     SELECT
         s.sales_id,
-        SUM(s.quantity * p.price) AS income
+        SUM(s.quantity * p.price) AS 'income'
     FROM
         sales s
     LEFT JOIN
         products p ON s.product_id = p.product_id
-    GROUP BY 
+    GROUP BY
         s.sales_id
 ),
 
@@ -189,7 +188,7 @@ selling_month AS (
         sales AS s
 )
 
-SELECT 
+SELECT
     CONCAT(sm.year, '-', LPAD(sm.month::text, 2, '0')) AS selling_month,
     COUNT(DISTINCT s.customer_id) AS unique_customers,
     FLOOR(SUM(inc.total_income)) AS total_income
@@ -229,7 +228,9 @@ purchase_info AS (
     FROM
         first_purchase fp
     JOIN
-        sales s ON fp.customer_id = s.customer_id AND fp.first_purchase_date = s.sale_date
+        sales s 
+        ON fp.customer_id = s.customer_id
+        AND fp.first_purchase_date = s.sale_date
     LEFT JOIN
         customers c ON s.customer_id = c.customer_id
     LEFT JOIN
