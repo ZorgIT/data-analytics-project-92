@@ -211,9 +211,9 @@ WITH first_purchase AS (
         s.customer_id,
         MIN(s.sale_date) AS first_purchase_date
     FROM
-        sales s
+        sales AS s
     JOIN
-        products p ON s.product_id = p.product_id
+        products AS p ON s.product_id = p.product_id
     WHERE
         p.price = 0
     GROUP BY
@@ -226,17 +226,16 @@ purchase_info AS (
         fp.first_purchase_date AS sale_date,
         CONCAT(e.first_name, ' ', e.last_name) AS seller
     FROM
-        first_purchase fp
+        first_purchase AS fp
     JOIN
-        sales s 
-        ON fp.customer_id = s.customer_id
+        sales AS s ON fp.customer_id = s.customer_id
         AND fp.first_purchase_date = s.sale_date
     LEFT JOIN
-        customers c ON s.customer_id = c.customer_id
+        customers AS c ON s.customer_id = c.customer_id
     LEFT JOIN
-        employees e ON s.sales_person_id = e.employee_id
+        employees AS e ON s.sales_person_id = e.employee_id
     LEFT JOIN
-        products p ON s.product_id = p.product_id
+        products AS p ON s.product_id = p.product_id
     WHERE
         p.price = 0
 )
