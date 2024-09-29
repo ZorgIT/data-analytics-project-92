@@ -38,7 +38,7 @@ SELECT
     COALESCE(sc.total_sales_count, 0) AS total_operations,
     FLOOR(id.total_income) AS total_income
 FROM
-    income_data id
+    income_data AS id
 LEFT JOIN
     sales_count AS sc ON id.sales_person_id = sc.sales_person_id
 LEFT JOIN
@@ -71,7 +71,7 @@ SELECT
     CONCAT(e.first_name, ' ', e.last_name) AS seller,
     FLOOR(ai.average_income) AS average_income
 FROM
-    avg_income ai
+    avg_income AS ai
 LEFT JOIN
     employees AS e ON ai.sales_person_id = e.employee_id
 WHERE
@@ -85,8 +85,7 @@ ORDER BY
 WITH income_sales AS (
     SELECT
         s.sales_id,
-        SUM(s.quantity * p.price)
-            AS income
+        SUM(s.quantity * p.price) AS income
     FROM
         sales AS s
     LEFT JOIN
