@@ -1,7 +1,7 @@
 /*
 Получение общего количества покупателей из таблицы customers
 */
-SELECT COUNT(*) AS customers_count
+SELECT COUNT(*) AS total_customers
 FROM customers;
 
 /*
@@ -10,7 +10,7 @@ FROM customers;
 WITH income_data AS (
     SELECT 
         s.sales_person_id,
-        SUM(s.quantity * p.price) AS income
+        SUM(s.quantity * p.price) AS total_income
     FROM 
         sales s
     LEFT JOIN 
@@ -18,7 +18,7 @@ WITH income_data AS (
     GROUP BY 
         s.sales_person_id
     ORDER BY 
-        income DESC
+        total_income DESC
     LIMIT 10
 ),
 sales_count AS (
@@ -32,8 +32,8 @@ sales_count AS (
 )
 SELECT 
     CONCAT(e.first_name, ' ', e.last_name) AS seller,
-    COALESCE(sc.total_sales_count, 0) AS operations,
-    FLOOR(id.income) AS income
+    COALESCE(sc.total_sales_count, 0) AS total_operations,
+    FLOOR(id.total_income) AS total_income
 FROM 
     income_data id
 LEFT JOIN 
@@ -41,7 +41,7 @@ LEFT JOIN
 LEFT JOIN 
     employees e ON id.sales_person_id = e.employee_id
 ORDER BY 
-    income DESC;
+    total_income DESC;
 
 /*
 Получение продавцов, чья выручка ниже средней выручки всех продавцов
@@ -59,7 +59,7 @@ WITH avg_income AS (
 ),
 total_avg_income AS (
     SELECT
-        AVG(average_income) AS total_average
+        AVG(average_income) AS overall_average_income
     FROM avg_income
 )
 SELECT 
@@ -70,7 +70,7 @@ FROM
 LEFT JOIN 
     employees e ON ai.sales_person_id = e.employee_id 
 WHERE 
-    ai.average_income < (SELECT total_average FROM total_avg_income)
+    ai.average_income < (SELECT overall_average_income FROM total_avg_income)
 ORDER BY 
     average_income ASC;
 
@@ -80,7 +80,7 @@ ORDER BY
 WITH income_sales AS (
     SELECT 
         s.sales_id,
-        SUM(s.quantity * p.price) AS income
+        SUM(s.quantity * p.price) AS total_income
     FROM 
         sales s
     LEFT JOIN 
@@ -113,7 +113,7 @@ sales_with_day_text AS (
 SELECT 
     CONCAT(e.first_name, ' ', e.last_name) AS seller,
     d.day_of_week,
-    FLOOR(SUM(ins.income)) AS income
+    FLOOR(SUM(ins.total_income)) AS total_income
 FROM 
     sales s
 LEFT JOIN 
@@ -142,7 +142,7 @@ WITH age_groups AS (
 )
 SELECT 
     age_category,
-    COUNT(*) AS age_count
+    COUNT(*) AS total_count
 FROM 
     age_groups
 GROUP BY 
@@ -160,7 +160,7 @@ ORDER BY
 WITH incomes AS (
     SELECT 
         s.customer_id,
-        SUM(s.quantity * p.price) AS income
+        SUM(s.quantity * p.price) AS total_income
     FROM 
         sales s
     LEFT JOIN 
@@ -178,8 +178,8 @@ selling_month AS (
 )
 SELECT 
     CONCAT(sm.year, '-', LPAD(sm.month::text, 2, '0')) AS selling_month,
-    COUNT(DISTINCT s.customer_id) AS total_customers,
-    FLOOR(SUM(inc.income)) AS total_income
+    COUNT(DISTINCT s.customer_id) AS unique_customers,
+    FLOOR(SUM(inc.total_income)) AS total_income
 FROM 
     sales s
 LEFT JOIN 
