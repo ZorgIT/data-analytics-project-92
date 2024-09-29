@@ -232,22 +232,36 @@ WITH first_purchase AS (
         s.customer_id
 ),
 
+customer_info AS (
+    SELECT
+        c.customer_id,
+        CONCAT(c.first_name, ' ', c.last_name) AS customer_name
+    FROM
+        customers AS c
+),
+
+employee_info AS (
+    SELECT
+        e.employee_id,
+        CONCAT(e.first_name, ' ', e.last_name) AS seller_name
+    FROM
+        employees AS e
+),
+
 purchase_info AS (
     SELECT DISTINCT
-        CONCAT(c.first_name, ' ', c.last_name) AS customer,
+        ci.customer_name AS customer,
         fp.first_purchase_date AS sale_date,
-        CONCAT(e.first_name, ' ', e.last_name) AS seller
+        ei.seller_name AS seller
     FROM
         first_purchase AS fp
     JOIN
-        sales AS s
-        ON
-            fp.customer_id = s.customer_id
-            AND fp.first_purchase_date = s.sale_date
+        sales AS s ON fp.customer_id = s.customer_id
+        AND fp.first_purchase_date = s.sale_date
     LEFT JOIN
-        customers AS c ON s.customer_id = c.customer_id
+        customer_info AS ci ON s.customer_id = ci.customer_id
     LEFT JOIN
-        employees AS e ON s.sales_person_id = e.employee_id
+        employee_info AS ei ON s.sales_person_id = ei.employee_id
     LEFT JOIN
         products AS p ON s.product_id = p.product_id
     WHERE
@@ -262,4 +276,3 @@ FROM
     purchase_info
 ORDER BY
     purchase_info.customer, purchase_info.sale_date;
-
