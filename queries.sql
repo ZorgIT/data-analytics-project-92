@@ -13,9 +13,9 @@ WITH income_data AS (
         s.sales_person_id,
         SUM(s.quantity * p.price) AS total_income
     FROM
-        sales s
+        sales AS s
     LEFT JOIN
-        products p ON s.product_id = p.product_id
+        products AS p ON s.product_id = p.product_id
     GROUP BY
         s.sales_person_id
     ORDER BY
@@ -28,7 +28,7 @@ sales_count AS (
         s.sales_person_id,
         COUNT(s.sales_id) AS total_sales_count
     FROM
-        sales s
+        sales AS s
     GROUP BY
         s.sales_person_id
 )
@@ -40,9 +40,9 @@ SELECT
 FROM
     income_data id
 LEFT JOIN
-    sales_count sc ON id.sales_person_id = sc.sales_person_id
+    sales_count AS sc ON id.sales_person_id = sc.sales_person_id
 LEFT JOIN
-    employees e ON id.sales_person_id = e.employee_id
+    employees AS e ON id.sales_person_id = e.employee_id
 ORDER BY
     total_income DESC;
 
@@ -54,9 +54,9 @@ WITH avg_income AS (
         s.sales_person_id,
         AVG(s.quantity * p.price) AS average_income
     FROM
-        sales s
+        sales AS s
     LEFT JOIN
-        products p ON s.product_id = p.product_id
+        products AS p ON s.product_id = p.product_id
     GROUP BY
         s.sales_person_id
 ),
@@ -73,7 +73,7 @@ SELECT
 FROM
     avg_income ai
 LEFT JOIN
-    employees e ON ai.sales_person_id = e.employee_id
+    employees AS e ON ai.sales_person_id = e.employee_id
 WHERE
     ai.average_income < (SELECT overall_average_income FROM total_avg_income)
 ORDER BY
@@ -88,9 +88,9 @@ WITH income_sales AS (
         SUM(s.quantity * p.price)
             AS income
     FROM
-        sales s
+        sales AS s
     LEFT JOIN
-        products p ON s.product_id = p.product_id
+        products AS p ON s.product_id = p.product_id
     GROUP BY
         s.sales_id
 ),
@@ -100,7 +100,7 @@ sales_with_day AS (
         s.sales_id,
         EXTRACT(ISODOW FROM s.sale_date) AS day_of_week_numeric
     FROM
-        sales s
+        sales AS s
 ),
 
 sales_with_day_text AS (
@@ -125,13 +125,13 @@ SELECT
     d.day_of_week,
     FLOOR(SUM(ins.income)) AS income
 FROM
-    sales s
+    sales AS s
 LEFT JOIN
     sales_with_day_text d ON s.sales_id = d.sales_id
 LEFT JOIN
-    employees e ON s.sales_person_id = e.employee_id
+    employees AS e ON s.sales_person_id = e.employee_id
 LEFT JOIN
-    income_sales ins ON s.sales_id = ins.sales_id
+    income_sales AS ins ON s.sales_id = ins.sales_id
 GROUP BY
     d.day_of_week_numeric, seller, d.day_of_week
 ORDER BY
@@ -173,9 +173,9 @@ WITH incomes AS (
         s.customer_id,
         SUM(s.quantity * p.price) AS total_income
     FROM
-        sales s
+        sales AS s
     LEFT JOIN
-        products p ON s.product_id = p.product_id
+        products AS p ON s.product_id = p.product_id
     GROUP BY
         s.customer_id
 ),
@@ -194,11 +194,11 @@ SELECT
     COUNT(DISTINCT s.customer_id) AS unique_customers,
     FLOOR(SUM(inc.total_income)) AS total_income
 FROM
-    sales s
+    sales AS s
 LEFT JOIN
     selling_month AS sm ON s.sales_id = sm.sales_id
 LEFT JOIN
-    incomes inc ON s.customer_id = inc.customer_id
+    incomes AS inc ON s.customer_id = inc.customer_id
 GROUP BY
     sm.year, sm.month
 ORDER BY
