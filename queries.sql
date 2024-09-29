@@ -224,14 +224,10 @@ WITH first_purchase AS (
         MIN(sl.sale_date) AS first_purchase_date
     FROM
         sales AS sl
-    JOIN (
-        SELECT
-            product_id
-        FROM
-            products
-        WHERE
-            price = 0
-    ) AS pr ON sl.product_id = pr.product_id
+    JOIN
+        products AS pr ON sl.product_id = pr.product_id
+    WHERE
+        pr.price = 0
     GROUP BY
         sl.customer_id
 ),
@@ -252,23 +248,6 @@ employee_info AS (
         employees AS emp
 ),
 
-first_purchase_sales AS (
-    SELECT
-        s.customer_id,
-        s.sale_date,
-        s.sales_person_id
-    FROM
-        sales AS s
-    JOIN (
-        SELECT
-            product_id
-        FROM
-            products
-        WHERE
-            price = 0
-    ) AS p ON s.product_id = p.product_id
-),
-
 purchase_info AS (
     SELECT DISTINCT
         ci.customer_name AS customer_name,
@@ -277,14 +256,18 @@ purchase_info AS (
     FROM
         first_purchase AS fp
     JOIN
-        first_purchase_sales AS fps 
+        sales AS s
         ON 
-            fp.customer_id = fps.customer_id
-            AND fp.first_purchase_date = fps.sale_date
+            fp.customer_id = s.customer_id
+            AND fp.first_purchase_date = s.sale_date
     LEFT JOIN
-        customer_info AS ci ON fps.customer_id = ci.customer_id
+        customer_info AS ci ON s.customer_id = ci.customer_id
     LEFT JOIN
-        employee_info AS ei ON fps.sales_person_id = ei.employee_id
+        employee_info AS ei ON s.sales_person_id = ei.employee_id
+    LEFT JOIN
+        products AS p ON s.product_id = p.product_id
+    WHERE
+        p.price = 0
 )
 
 SELECT
@@ -294,5 +277,4 @@ SELECT
 FROM
     purchase_info AS pi
 ORDER BY
-    pi.customer_name,
-    pi.first_purchase_date;
+    pi.customer_name, pi.first_purchase_date;
