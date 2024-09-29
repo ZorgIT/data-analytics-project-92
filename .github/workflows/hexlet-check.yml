@@ -18,6 +18,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Clear cache
+        uses: actions/cache@v3
+        with:
+          path: path/to/cache
+          key: ${{ runner.os }}-hexlet-check-${{ github.sha }}
+
       - name: Hexlet project check
         uses: hexlet/project-action@release
         with:
