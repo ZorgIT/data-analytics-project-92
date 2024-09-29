@@ -182,7 +182,7 @@ selling_month AS (
 SELECT 
     CONCAT(sm.year, '-', LPAD(sm.month::text, 2, '0')) AS selling_month,
     COUNT(DISTINCT s.customer_id) AS total_customers,
-    ROUND(SUM(inc.income)) AS total_income
+    floor(SUM(inc.income)) AS income
 FROM sales s
 LEFT JOIN selling_month AS sm
     ON s.sales_id = sm.sales_id
