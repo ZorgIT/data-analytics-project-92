@@ -1,50 +1,52 @@
 /*
-получение общего количество покупателей из таблици customers
+получение общего количества покупателей из таблицы customers
 */
-select count(*) as customers_count
-from customers c;
+SELECT COUNT(*) AS customers_count
+FROM customers c;
 
 /*
-Получение данных по 10 продавцам у которых наибольшая выручка
+Получение данных по 10 продавцам, у которых наибольшая выручка
 */
-
-with tab as (
-	select 
-		s.sales_person_id,
-		sum(s.quantity * p.price) as income
-	from 
-		sales s
-	left join 
-		employees e 
-		on s.sales_person_id = e.employee_id
-	left join 
-		products p
-		on s.product_id = p.product_id
-	group by 
-		s.sales_person_id
-	order by 
-		income desc
-	limit 10),
-tab2 as (
-	SELECT 
-	    s.sales_person_id,
-	    COUNT(s.sales_id) AS total_sales_count
-	FROM 
-	    sales s
-	GROUP BY 
-	    s.sales_person_id
+WITH tab AS (
+    SELECT 
+        s.sales_person_id,
+        SUM(s.quantity * p.price) AS income
+    FROM 
+        sales s
+    LEFT JOIN 
+        employees e ON s.sales_person_id = e.employee_id
+    LEFT JOIN 
+        products p ON s.product_id = p.product_id
+    GROUP BY 
+        s.sales_person_id
+    ORDER BY 
+        income DESC
+    LIMIT 10
+),
+tab2 AS (
+    SELECT 
+        s.sales_person_id,
+        COUNT(s.sales_id) AS total_sales_count
+    FROM 
+        sales s
+    GROUP BY 
+        s.sales_person_id
 )
-select concat(e.first_name,' ', e.last_name) as seller,
-t2.total_sales_count as operations,
-floor(t.income) as income
-from tab t
-left join tab2 t2
-	on t.sales_person_id = t2.sales_person_id
-left join employees e 
-	on 	t.sales_person_id = e.employee_id
-order by t.income desc;
+SELECT 
+    CONCAT(e.first_name, ' ', e.last_name) AS seller,
+    t2.total_sales_count AS operations,
+    FLOOR(t.income) AS income
+FROM 
+    tab t
+LEFT JOIN 
+    tab2 t2 ON t.sales_person_id = t2.sales_person_id
+LEFT JOIN 
+    employees e ON t.sales_person_id = e.employee_id
+ORDER BY 
+    t.income DESC;
+
 /*
-получение продавцов чья выручка ниже средней выручки всех продавцов
+Получение продавцов, чья выручка ниже средней выручки всех продавцов
 */
 WITH avg_inc AS (
     SELECT 
@@ -66,7 +68,7 @@ avg_full AS (
 )
 SELECT 
     e.first_name || ' ' || e.last_name AS seller,
-    floor(ai.average_income) AS average_income
+    FLOOR(ai.average_income) AS average_income
 FROM 
     avg_inc AS ai
 LEFT JOIN 
@@ -75,6 +77,7 @@ WHERE
     ai.average_income < (SELECT total_average FROM avg_full)
 ORDER BY 
     average_income ASC;
+
 /*
 Получение данных по выручке по каждому продавцу и дню недели
 */
@@ -115,7 +118,7 @@ sales_with_day_text AS (
 SELECT 
     CONCAT(e.first_name, ' ', e.last_name) AS seller,
     d.day_of_week,
-    floor(SUM(ins.income)) AS income
+    FLOOR(SUM(ins.income)) AS income
 FROM 
     sales s
 LEFT JOIN 
@@ -125,12 +128,12 @@ LEFT JOIN
 LEFT JOIN 
     income_sales ins ON s.sales_id = ins.sales_id
 GROUP BY 
-    d.day_of_week_numeric, seller,d.day_of_week
+    d.day_of_week_numeric, seller, d.day_of_week
 ORDER BY 
     day_of_week_numeric, seller;
-	
+
 /*
-Получение количества продаж по каждой возростной группе
+Получение количества продаж по каждой возрастной группе
 */
 WITH age_groups AS (
     SELECT 
@@ -139,60 +142,65 @@ WITH age_groups AS (
             WHEN age >= 26 AND age <= 40 THEN '26-40'
             ELSE '40+' 
         END AS age_category
-    FROM public.customers
+    FROM 
+        public.customers
 ),
 age_counts AS (
     SELECT 
         age_category,
         COUNT(*) AS count
-    FROM age_groups
-    GROUP BY age_category
+    FROM 
+        age_groups
+    GROUP BY 
+        age_category
 )
-
 SELECT 
     age_category,
-    count as age_count
-FROM age_counts
+    count AS age_count
+FROM 
+    age_counts
 ORDER BY 
     CASE 
         WHEN age_category = '16-25' THEN 1
         WHEN age_category = '26-40' THEN 2
         ELSE 3 
     END;
-	
+
 /*
-Получение количества уникальных покупателей и выручке которую они принесли.
+Получение количества уникальных покупателей и выручки, которую они принесли.
 */
 WITH incomes AS (
     SELECT 
         s.sales_id,
         (s.quantity * p.price) AS income
-    FROM sales s
-    LEFT JOIN products p 
-        ON s.product_id = p.product_id
+    FROM 
+        sales s
+    LEFT JOIN 
+        products p ON s.product_id = p.product_id
 ), 
 selling_month AS (
     SELECT 
         s.sales_id,
         EXTRACT(YEAR FROM s.sale_date) AS year,
         EXTRACT(MONTH FROM s.sale_date) AS month
-    FROM sales AS s
+    FROM 
+        sales AS s
 )
-
 SELECT 
     CONCAT(sm.year, '-', LPAD(sm.month::text, 2, '0')) AS selling_month,
     COUNT(DISTINCT s.customer_id) AS total_customers,
-    floor(SUM(inc.income)) AS income
-FROM sales s
-LEFT JOIN selling_month AS sm
-    ON s.sales_id = sm.sales_id
-LEFT JOIN incomes inc
-    ON s.sales_id = inc.sales_id
+    FLOOR(SUM(inc.income)) AS income
+FROM 
+    sales s
+LEFT JOIN 
+    selling_month AS sm ON s.sales_id = sm.sales_id
+LEFT JOIN 
+    incomes inc ON s.sales_id = inc.sales_id
 GROUP BY 
     sm.year, sm.month
 ORDER BY 
     sm.year, sm.month;
-	
+
 /*
 Получение информации о покупателях, первая покупка которых была в ходе проведения акций
 */
@@ -237,8 +245,3 @@ FROM
     tab2
 GROUP BY 
     customer, sale_date, seller;
-	
-
-
-	
-	
