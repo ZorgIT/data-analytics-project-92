@@ -36,7 +36,7 @@ tab2 as (
 )
 select concat(e.first_name,' ', e.last_name) as seller,
 t2.total_sales_count as operations,
-round(t.income) as income
+floor(t.income) as income
 from tab t
 left join tab2 t2
 	on t.sales_person_id = t2.sales_person_id
@@ -49,7 +49,7 @@ order by t.income desc;
 WITH avg_inc AS (
     SELECT 
         s.sales_person_id,
-        AVG(ceil(s.quantity * p.price)) AS average_income
+        AVG(s.quantity * p.price) AS average_income
     FROM 
         sales s
     LEFT JOIN 
@@ -66,7 +66,7 @@ avg_full AS (
 )
 SELECT 
     e.first_name || ' ' || e.last_name AS seller,
-    ROUND(ai.average_income) AS average_income
+    floor(ai.average_income) AS average_income
 FROM 
     avg_inc AS ai
 LEFT JOIN 
@@ -101,13 +101,13 @@ sales_with_day_text AS (
         sales_id,
         day_of_week_numeric,
         CASE
-            WHEN day_of_week_numeric = 1 THEN 'monday'
-            WHEN day_of_week_numeric = 2 THEN 'tuesday'
+            WHEN day_of_week_numeric = 1 THEN 'monday   '
+            WHEN day_of_week_numeric = 2 THEN 'tuesday  '
             WHEN day_of_week_numeric = 3 THEN 'wednesday'
-            WHEN day_of_week_numeric = 4 THEN 'thursday'
-            WHEN day_of_week_numeric = 5 THEN 'friday'
-            WHEN day_of_week_numeric = 6 THEN 'saturday'
-            WHEN day_of_week_numeric = 7 THEN 'sunday'
+            WHEN day_of_week_numeric = 4 THEN 'thursday '
+            WHEN day_of_week_numeric = 5 THEN 'friday   '
+            WHEN day_of_week_numeric = 6 THEN 'saturday '
+            WHEN day_of_week_numeric = 7 THEN 'sunday   '
         END AS day_of_week
     FROM 
         sales_with_day
@@ -115,7 +115,7 @@ sales_with_day_text AS (
 SELECT 
     CONCAT(e.first_name, ' ', e.last_name) AS seller,
     d.day_of_week,
-    ROUND(SUM(ins.income)) AS income
+    floor(SUM(ins.income)) AS income
 FROM 
     sales s
 LEFT JOIN 
@@ -151,7 +151,7 @@ age_counts AS (
 
 SELECT 
     age_category,
-    count
+    count as age_count
 FROM age_counts
 ORDER BY 
     CASE 
