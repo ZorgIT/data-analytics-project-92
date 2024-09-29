@@ -220,32 +220,32 @@ ORDER BY
 */
 WITH first_purchase AS (
     SELECT
-        s.customer_id,
-        MIN(s.sale_date) AS first_purchase_date
+        sl.customer_id,
+        MIN(sl.sale_date) AS first_purchase_date
     FROM
-        sales AS s
+        sales AS sl
     JOIN
-        products AS p ON s.product_id = p.product_id
+        products AS pr ON sl.product_id = pr.product_id
     WHERE
-        p.price = 0
+        pr.price = 0
     GROUP BY
-        s.customer_id
+        sl.customer_id
 ),
 
 customer_info AS (
     SELECT
-        c.customer_id,
-        CONCAT(c.first_name, ' ', c.last_name) AS customer_name
+        ctmr.customer_id,
+        CONCAT(ctmr.first_name, ' ', ctmr.last_name) AS customer_name
     FROM
-        customers AS c
+        customers AS ctmr
 ),
 
 employee_info AS (
     SELECT
-        e.employee_id,
-        CONCAT(e.first_name, ' ', e.last_name) AS seller_name
+        emp.employee_id,
+        CONCAT(emp.first_name, ' ', emp.last_name) AS seller_name
     FROM
-        employees AS e
+        employees AS emp
 ),
 
 purchase_info AS (
@@ -257,8 +257,9 @@ purchase_info AS (
         first_purchase AS fp
     JOIN
         sales AS s
-        ON fp.customer_id = s.customer_id
-        AND fp.first_purchase_date = s.sale_date
+        ON 
+            fp.customer_id = s.customer_id
+            AND fp.first_purchase_date = s.sale_date
     LEFT JOIN
         customer_info AS ci ON s.customer_id = ci.customer_id
     LEFT JOIN
