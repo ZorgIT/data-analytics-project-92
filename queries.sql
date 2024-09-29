@@ -1,7 +1,7 @@
 /*
 получение общего количество покупателей из таблици customers
 */
-select count(*) as customer_count
+select count(*) as customers_count
 from customers c;
 
 /*
@@ -34,9 +34,9 @@ tab2 as (
 	GROUP BY 
 	    s.sales_person_id
 )
-select concat(e.first_name,' ', e.last_name),
+select concat(e.first_name,' ', e.last_name) as seller,
 t2.total_sales_count as operations,
-t.income
+round(t.income) as income
 from tab t
 left join tab2 t2
 	on t.sales_person_id = t2.sales_person_id
@@ -49,7 +49,7 @@ order by t.income desc;
 WITH avg_inc AS (
     SELECT 
         s.sales_person_id,
-        AVG(s.quantity * p.price) AS average_income
+        AVG(ceil(s.quantity * p.price)) AS average_income
     FROM 
         sales s
     LEFT JOIN 
@@ -115,7 +115,7 @@ sales_with_day_text AS (
 SELECT 
     CONCAT(e.first_name, ' ', e.last_name) AS seller,
     d.day_of_week,
-    SUM(ins.income) AS income
+    ROUND(SUM(ins.income)) AS income
 FROM 
     sales s
 LEFT JOIN 
@@ -132,23 +132,33 @@ ORDER BY
 /*
 Получение количества продаж по каждой возростной группе
 */
-WITH sales_with_age_cat AS (
-    SELECT *,
-           CASE
-               WHEN c.age BETWEEN 16 AND 25 THEN '16-25'
-               WHEN c.age BETWEEN 26 AND 40 THEN '26-40'
-               WHEN c.age > 40 THEN '40+'
-           END AS age_category
-    FROM sales s
-    LEFT JOIN customers c ON s.customer_id = c.customer_id
+WITH age_groups AS (
+    SELECT 
+        CASE 
+            WHEN age >= 16 AND age <= 25 THEN '16-25'
+            WHEN age >= 26 AND age <= 40 THEN '26-40'
+            ELSE '40+' 
+        END AS age_category
+    FROM public.customers
+),
+age_counts AS (
+    SELECT 
+        age_category,
+        COUNT(*) AS count
+    FROM age_groups
+    GROUP BY age_category
 )
-SELECT age_category,
-       COUNT(age_category) AS category_count
-FROM sales_with_age_cat
-GROUP BY 
-	age_category
+
+SELECT 
+    age_category,
+    count
+FROM age_counts
 ORDER BY 
-	age_category;
+    CASE 
+        WHEN age_category = '16-25' THEN 1
+        WHEN age_category = '26-40' THEN 2
+        ELSE 3 
+    END;
 	
 /*
 Получение количества уникальных покупателей и выручке которую они принесли.
@@ -170,9 +180,9 @@ selling_month AS (
 )
 
 SELECT 
-    CONCAT(sm.year, '-', sm.month) AS selling_month,
-    COUNT(DISTINCT s.customer_id) as total_customers,
-    SUM(inc.income) AS total_income
+    CONCAT(sm.year, '-', LPAD(sm.month::text, 2, '0')) AS selling_month,
+    COUNT(DISTINCT s.customer_id) AS total_customers,
+    ROUND(SUM(inc.income)) AS total_income
 FROM sales s
 LEFT JOIN selling_month AS sm
     ON s.sales_id = sm.sales_id
