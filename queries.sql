@@ -215,7 +215,7 @@ ORDER BY
     sm.yearr, sm.monthh;
 
 /*
-Получение информации о покупателях, первая 
+Получение информации о покупателях, первая
 покупка которых была в ходе проведения акций
 */
 WITH first_purchase AS (
@@ -241,8 +241,9 @@ purchase_info AS (
         first_purchase AS fp
     JOIN
         sales AS s
-        ON fp.customer_id = s.customer_id
-        AND fp.first_purchase_date = s.sale_date
+        ON
+            fp.customer_id = s.customer_id
+            AND fp.first_purchase_date = s.sale_date
     LEFT JOIN
         customers AS c ON s.customer_id = c.customer_id
     LEFT JOIN
