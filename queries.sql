@@ -80,26 +80,27 @@ ORDER BY
 Получение данных по выручке по каждому продавцу и дню недели
 */
 WITH income_sales AS (
-	SELECT
-		s.sales_id,
-		SUM(s.quantity * p.price) AS total_income
-	FROM
+	SELECT 
+	s.sales_id,
+		SUM(s.quantity * p.price) AS income
+	FROM 
 		sales s
-	LEFT JOIN
+	LEFT JOIN 
 		products p ON s.product_id = p.product_id
-	GROUP BY
-		s.sales_id
-), 
+	GROUP BY 
+	s.sales_id
+),
 sales_with_day AS (
-	SELECT
+	SELECT 
 		s.sales_id,
 		EXTRACT(ISODOW FROM s.sale_date) AS day_of_week_numeric
-	FROM
+	FROM 
 		sales s
-), 
+),
 sales_with_day_text AS (
-	SELECT
+	SELECT 
 		sales_id,
+		day_of_week_numeric,
 		CASE
 			WHEN day_of_week_numeric = 1 THEN 'monday'
 			WHEN day_of_week_numeric = 2 THEN 'tuesday'
@@ -107,27 +108,27 @@ sales_with_day_text AS (
 			WHEN day_of_week_numeric = 4 THEN 'thursday'
 			WHEN day_of_week_numeric = 5 THEN 'friday'
 			WHEN day_of_week_numeric = 6 THEN 'saturday'
-			WHEN day_of_week_numeric = 7 THEN 'sunday'
-		END AS day_of_week
-	FROM
+				WHEN day_of_week_numeric = 7 THEN 'sunday'
+			END AS day_of_week
+	FROM 
 		sales_with_day
 )
-SELECT
+SELECT 
 	CONCAT(e.first_name, ' ', e.last_name) AS seller,
 	d.day_of_week,
-	FLOOR(SUM(ins.total_income)) AS total_income
-FROM
+	FLOOR(SUM(ins.income)) AS income
+FROM 
 	sales s
-LEFT JOIN
+LEFT JOIN 
 	sales_with_day_text d ON s.sales_id = d.sales_id
-LEFT JOIN
+LEFT JOIN 
 	employees e ON s.sales_person_id = e.employee_id
-LEFT JOIN
+LEFT JOIN 
 	income_sales ins ON s.sales_id = ins.sales_id
-GROUP BY
-	d.day_of_week, seller
-ORDER BY
-	d.day_of_week, seller;
+GROUP BY 
+	d.day_of_week_numeric, seller, d.day_of_week
+ORDER BY 
+	day_of_week_numeric, seller;
 
 /*
 Получение количества продаж по каждой возрастной группе
