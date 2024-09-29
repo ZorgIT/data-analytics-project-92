@@ -119,7 +119,7 @@ sales_with_day_text AS (
         sales_with_day
 ),
 
-SellerNames AS (
+sellernames AS (
     SELECT
         s.sales_id,
         CONCAT(e.first_name, ' ', e.last_name) AS seller
@@ -134,11 +134,11 @@ SELECT
     d.day_of_week,
     FLOOR(SUM(ins.income)) AS income
 FROM
-    SellerNames AS sn
+    sellernames AS sn
 LEFT JOIN
     sales AS s ON sn.sales_id = s.sales_id
 LEFT JOIN
-    sales_with_day_text d ON s.sales_id = d.sales_id
+    sales_with_day_text AS d ON s.sales_id = d.sales_id
 LEFT JOIN
     income_sales AS ins ON s.sales_id = ins.sales_id
 GROUP BY
@@ -191,14 +191,16 @@ WITH incomes AS (
 selling_month AS (
     SELECT
         s.sales_id,
-        EXTRACT(YEAR FROM s.sale_date) AS 'year',
-        EXTRACT(MONTH FROM s.sale_date) AS 'month'
+        EXTRACT(YEAR FROM s.sale_date)
+        AS yearr,
+        EXTRACT(MONTH FROM s.sale_date)
+        AS monthh
     FROM
         sales AS s
 )
 
 SELECT
-    CONCAT(sm.year, '-', LPAD(sm.month::text, 2, '0')) AS selling_month,
+    CONCAT(sm.yearr, '-', LPAD(sm.monthh::text, 2, '0')) AS selling_month,
     COUNT(DISTINCT s.customer_id) AS unique_customers,
     FLOOR(SUM(inc.total_income)) AS total_income
 FROM
@@ -208,9 +210,9 @@ LEFT JOIN
 LEFT JOIN
     incomes AS inc ON s.customer_id = inc.customer_id
 GROUP BY
-    sm.year, sm.month
+    sm.yearr, sm.monthh
 ORDER BY
-    sm.year, sm.month;
+    sm.yearr, sm.monthh;
 
 /*
 Получение информации о покупателях, первая 
