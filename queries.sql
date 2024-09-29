@@ -85,7 +85,8 @@ ORDER BY
 WITH income_sales AS (
     SELECT
         s.sales_id,
-        SUM(s.quantity * p.price) AS 'income'
+        SUM(s.quantity * p.price)
+            AS income
     FROM
         sales s
     LEFT JOIN
@@ -182,8 +183,8 @@ WITH incomes AS (
 selling_month AS (
     SELECT
         s.sales_id,
-        EXTRACT(YEAR FROM s.sale_date) AS year,
-        EXTRACT(MONTH FROM s.sale_date) AS month
+        EXTRACT(YEAR FROM s.sale_date) AS 'year',
+        EXTRACT(MONTH FROM s.sale_date) AS 'month'
     FROM
         sales AS s
 )
@@ -204,7 +205,8 @@ ORDER BY
     sm.year, sm.month;
 
 /*
-Получение информации о покупателях, первая покупка которых была в ходе проведения акций
+Получение информации о покупателях, первая 
+покупка которых была в ходе проведения акций
 */
 WITH first_purchase AS (
     SELECT
@@ -228,7 +230,8 @@ purchase_info AS (
     FROM
         first_purchase AS fp
     JOIN
-        sales AS s ON fp.customer_id = s.customer_id
+        sales AS s
+        ON fp.customer_id = s.customer_id
         AND fp.first_purchase_date = s.sale_date
     LEFT JOIN
         customers AS c ON s.customer_id = c.customer_id
