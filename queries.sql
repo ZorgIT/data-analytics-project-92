@@ -14,7 +14,7 @@ WITH income_data AS (
         SUM(s.quantity * p.price) AS total_income
     FROM
         sales s
-    EFT JOIN
+    LEFT JOIN
         products p ON s.product_id = p.product_id
     GROUP BY
         s.sales_person_id
@@ -22,6 +22,7 @@ WITH income_data AS (
         total_income DESC
     LIMIT 10
 ),
+
 sales_count AS (
     SELECT
         s.sales_person_id,
@@ -31,6 +32,7 @@ sales_count AS (
     GROUP BY
         s.sales_person_id
 )
+
 SELECT
     CONCAT(e.first_name, ' ', e.last_name) AS seller,
     COALESCE(sc.total_sales_count, 0) AS total_operations,
