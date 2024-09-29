@@ -221,7 +221,7 @@ WITH first_purchase AS (
 ),
 
 purchase_info AS (
-    SELECT
+    SELECT DISTINCT
         CONCAT(c.first_name, ' ', c.last_name) AS customer,
         fp.first_purchase_date AS sale_date,
         CONCAT(e.first_name, ' ', e.last_name) AS seller
@@ -242,7 +242,7 @@ purchase_info AS (
 )
 
 SELECT
-        customer,
+    customer,
     sale_date,
     seller
 FROM
