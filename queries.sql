@@ -102,13 +102,13 @@ sales_with_day_text AS (
 		sales_id,
 		day_of_week_numeric,
 		CASE
-			WHEN day_of_week_numeric = 1 THEN 'monday   '
-			WHEN day_of_week_numeric = 2 THEN 'tuesday  '
+			WHEN day_of_week_numeric = 1 THEN 'monday'
+			WHEN day_of_week_numeric = 2 THEN 'tuesday'
 			WHEN day_of_week_numeric = 3 THEN 'wednesday'
-			WHEN day_of_week_numeric = 4 THEN 'thursday '
-			WHEN day_of_week_numeric = 5 THEN 'friday   '
-			WHEN day_of_week_numeric = 6 THEN 'saturday '
-			WHEN day_of_week_numeric = 7 THEN 'sunday   '
+			WHEN day_of_week_numeric = 4 THEN 'thursday'
+			WHEN day_of_week_numeric = 5 THEN 'friday'
+			WHEN day_of_week_numeric = 6 THEN 'saturday'
+			WHEN day_of_week_numeric = 7 THEN 'sunday'
 		END AS day_of_week
 	FROM
 		sales_with_day
