@@ -117,25 +117,34 @@ sales_with_day_text AS (
         END AS day_of_week
     FROM
         sales_with_day
+),
+
+SellerNames AS (
+    SELECT
+        s.sales_id,
+        CONCAT(e.first_name, ' ', e.last_name) AS seller
+    FROM
+        sales AS s
+    LEFT JOIN
+        employees AS e ON s.sales_person_id = e.employee_id
 )
 
 SELECT
-    CONCAT(e.first_name, ' ', e.last_name) AS seller,
+    sn.seller,
     d.day_of_week,
     FLOOR(SUM(ins.income)) AS income
 FROM
-    sales AS s
+    SellerNames AS sn
+LEFT JOIN
+    sales AS s ON sn.sales_id = s.sales_id
 LEFT JOIN
     sales_with_day_text d ON s.sales_id = d.sales_id
 LEFT JOIN
-    employees AS e ON s.sales_person_id = e.employee_id
-LEFT JOIN
     income_sales AS ins ON s.sales_id = ins.sales_id
 GROUP BY
-    d.day_of_week_numeric, seller, d.day_of_week
+    d.day_of_week_numeric, sn.seller, d.day_of_week
 ORDER BY
-    day_of_week_numeric, seller;
-
+    d.day_of_week_numeric, sn.seller;
 /*
 Получение количества продаж по каждой возрастной группе
 */
