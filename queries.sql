@@ -60,19 +60,21 @@ WITH avg_income AS (
     GROUP BY
         s.sales_person_id
 ),
+
 total_avg_income AS (
     SELECT
         AVG(average_income) AS overall_average_income
     FROM
         avg_income
 )
+
 SELECT
     CONCAT(e.first_name, ' ', e.last_name) AS seller,
     FLOOR(ai.average_income) AS average_income
 FROM
     avg_income ai
 LEFT JOIN
-    employees e ON ai.sales_person_id = e.employee_id 
+    employees e ON ai.sales_person_id = e.employee_id
 WHERE
     ai.average_income < (SELECT overall_average_income FROM total_avg_income)
 ORDER BY
@@ -91,14 +93,16 @@ WITH income_sales AS (
         products p ON s.product_id = p.product_id
     GROUP BY 
         s.sales_id
-), 
+),
+
 sales_with_day AS (
     SELECT
         s.sales_id,
         EXTRACT(ISODOW FROM s.sale_date) AS day_of_week_numeric
     FROM
         sales s
-), 
+),
+
 sales_with_day_text AS (
     SELECT
         sales_id,
@@ -115,6 +119,7 @@ sales_with_day_text AS (
     FROM
         sales_with_day
 )
+
 SELECT
     CONCAT(e.first_name, ' ', e.last_name) AS seller,
     d.day_of_week,
@@ -145,6 +150,7 @@ WITH age_groups AS (
     FROM
         customers
 )
+
 SELECT
     age_category,
     COUNT(*) AS total_count
@@ -173,6 +179,7 @@ WITH incomes AS (
     GROUP BY
         s.customer_id
 ),
+
 selling_month AS (
     SELECT
         s.sales_id,
@@ -181,6 +188,7 @@ selling_month AS (
     FROM
         sales AS s
 )
+
 SELECT 
     CONCAT(sm.year, '-', LPAD(sm.month::text, 2, '0')) AS selling_month,
     COUNT(DISTINCT s.customer_id) AS unique_customers,
@@ -211,7 +219,8 @@ WITH first_purchase AS (
         p.price = 0
     GROUP BY
         s.customer_id
-), 
+),
+
 purchase_info AS (
     SELECT
         CONCAT(c.first_name, ' ', c.last_name) AS customer,
@@ -230,6 +239,7 @@ purchase_info AS (
     WHERE
         p.price = 0
 )
+
 SELECT
         customer,
     sale_date,
