@@ -1,8 +1,10 @@
 /*
 Получение общего количества покупателей из таблицы customers
 */
-SELECT COUNT(*) AS total_customers
-FROM customers;
+SELECT 
+    COUNT(*) AS total_customers
+FROM 
+    customers;
 
 /*
 Получение данных по 10 продавцам, у которых наибольшая выручка
@@ -58,9 +60,10 @@ WITH avg_income AS (
         s.sales_person_id
 ),
 total_avg_income AS (
-    SELECT
+    SELECT 
         AVG(average_income) AS overall_average_income
-    FROM avg_income
+    FROM 
+        avg_income
 )
 SELECT 
     CONCAT(e.first_name, ' ', e.last_name) AS seller,
