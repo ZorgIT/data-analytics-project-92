@@ -255,10 +255,11 @@ purchase_info AS (
 )
 
 SELECT
-    customer,
-    sale_date,
-    seller
+    purchase_info.customer,
+    purchase_info.sale_date,
+    purchase_info.seller
 FROM
     purchase_info
 ORDER BY
-    customer, sale_date;
+    purchase_info.customer, purchase_info.sale_date;
+
