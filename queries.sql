@@ -128,6 +128,62 @@ GROUP BY
     d.day_of_week_numeric, seller,d.day_of_week
 ORDER BY 
     day_of_week_numeric, seller;
+	
+/*
+Получение количества продаж по каждой возростной группе
+*/
+WITH sales_with_age_cat AS (
+    SELECT *,
+           CASE
+               WHEN c.age BETWEEN 16 AND 25 THEN '16-25'
+               WHEN c.age BETWEEN 26 AND 40 THEN '26-40'
+               WHEN c.age > 40 THEN '40+'
+           END AS age_category
+    FROM sales s
+    LEFT JOIN customers c ON s.customer_id = c.customer_id
+)
+SELECT age_category,
+       COUNT(age_category) AS category_count
+FROM sales_with_age_cat
+GROUP BY 
+	age_category
+ORDER BY 
+	age_category;
+	
+/*
+Получение количества уникальных покупателей и выручке которую они принесли.
+*/
+WITH incomes AS (
+    SELECT 
+        s.sales_id,
+        (s.quantity * p.price) AS income
+    FROM sales s
+    LEFT JOIN products p 
+        ON s.product_id = p.product_id
+), 
+selling_month AS (
+    SELECT 
+        s.sales_id,
+        EXTRACT(YEAR FROM s.sale_date) AS year,
+        EXTRACT(MONTH FROM s.sale_date) AS month
+    FROM sales AS s
+)
+
+SELECT 
+    CONCAT(sm.year, '-', sm.month) AS selling_month,
+    COUNT(DISTINCT s.customer_id) as total_customers,
+    SUM(inc.income) AS total_income
+FROM sales s
+LEFT JOIN selling_month AS sm
+    ON s.sales_id = sm.sales_id
+LEFT JOIN incomes inc
+    ON s.sales_id = inc.sales_id
+GROUP BY 
+    sm.year, sm.month
+ORDER BY 
+    sm.year, sm.month;
+	
+
 
 	
 	
