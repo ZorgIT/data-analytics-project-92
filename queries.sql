@@ -1,20 +1,18 @@
 /*
-получение общего количества покупателей из таблицы customers
+Получение общего количества покупателей из таблицы customers
 */
 SELECT COUNT(*) AS customers_count
-FROM customers c;
+FROM customers;
 
 /*
 Получение данных по 10 продавцам, у которых наибольшая выручка
 */
-WITH tab AS (
+WITH income_data AS (
     SELECT 
         s.sales_person_id,
         SUM(s.quantity * p.price) AS income
     FROM 
         sales s
-    LEFT JOIN 
-        employees e ON s.sales_person_id = e.employee_id
     LEFT JOIN 
         products p ON s.product_id = p.product_id
     GROUP BY 
@@ -23,7 +21,7 @@ WITH tab AS (
         income DESC
     LIMIT 10
 ),
-tab2 AS (
+sales_count AS (
     SELECT 
         s.sales_person_id,
         COUNT(s.sales_id) AS total_sales_count
@@ -34,47 +32,45 @@ tab2 AS (
 )
 SELECT 
     CONCAT(e.first_name, ' ', e.last_name) AS seller,
-    t2.total_sales_count AS operations,
-    FLOOR(t.income) AS income
+    COALESCE(sc.total_sales_count, 0) AS operations,
+    FLOOR(id.income) AS income
 FROM 
-    tab t
+    income_data id
 LEFT JOIN 
-    tab2 t2 ON t.sales_person_id = t2.sales_person_id
+    sales_count sc ON id.sales_person_id = sc.sales_person_id
 LEFT JOIN 
-    employees e ON t.sales_person_id = e.employee_id
+    employees e ON id.sales_person_id = e.employee_id
 ORDER BY 
-    t.income DESC;
+    income DESC;
 
 /*
 Получение продавцов, чья выручка ниже средней выручки всех продавцов
 */
-WITH avg_inc AS (
+WITH avg_income AS (
     SELECT 
         s.sales_person_id,
         AVG(s.quantity * p.price) AS average_income
     FROM 
         sales s
     LEFT JOIN 
-        employees e ON s.sales_person_id = e.employee_id
-    LEFT JOIN 
         products p ON s.product_id = p.product_id
     GROUP BY 
         s.sales_person_id
 ),
-avg_full AS (
+total_avg_income AS (
     SELECT
         AVG(average_income) AS total_average
-    FROM avg_inc
+    FROM avg_income
 )
 SELECT 
-    e.first_name || ' ' || e.last_name AS seller,
+    CONCAT(e.first_name, ' ', e.last_name) AS seller,
     FLOOR(ai.average_income) AS average_income
 FROM 
-    avg_inc AS ai
+    avg_income ai
 LEFT JOIN 
     employees e ON ai.sales_person_id = e.employee_id 
 WHERE 
-    ai.average_income < (SELECT total_average FROM avg_full)
+    ai.average_income < (SELECT total_average FROM total_avg_income)
 ORDER BY 
     average_income ASC;
 
@@ -102,15 +98,14 @@ sales_with_day AS (
 sales_with_day_text AS (
     SELECT 
         sales_id,
-        day_of_week_numeric,
         CASE
-            WHEN day_of_week_numeric = 1 THEN 'monday   '
-            WHEN day_of_week_numeric = 2 THEN 'tuesday  '
+            WHEN day_of_week_numeric = 1 THEN 'monday'
+            WHEN day_of_week_numeric = 2 THEN 'tuesday'
             WHEN day_of_week_numeric = 3 THEN 'wednesday'
-            WHEN day_of_week_numeric = 4 THEN 'thursday '
-            WHEN day_of_week_numeric = 5 THEN 'friday   '
-            WHEN day_of_week_numeric = 6 THEN 'saturday '
-            WHEN day_of_week_numeric = 7 THEN 'sunday   '
+            WHEN day_of_week_numeric = 4 THEN 'thursday'
+            WHEN day_of_week_numeric = 5 THEN 'friday'
+            WHEN day_of_week_numeric = 6 THEN 'saturday'
+            WHEN day_of_week_numeric = 7 THEN 'sunday'
         END AS day_of_week
     FROM 
         sales_with_day
@@ -128,9 +123,9 @@ LEFT JOIN
 LEFT JOIN 
     income_sales ins ON s.sales_id = ins.sales_id
 GROUP BY 
-    d.day_of_week_numeric, seller, d.day_of_week
+    d.day_of_week, seller
 ORDER BY 
-    day_of_week_numeric, seller;
+    d.day_of_week, seller;
 
 /*
 Получение количества продаж по каждой возрастной группе
@@ -138,27 +133,20 @@ ORDER BY
 WITH age_groups AS (
     SELECT 
         CASE 
-            WHEN age >= 16 AND age <= 25 THEN '16-25'
-            WHEN age >= 26 AND age <= 40 THEN '26-40'
+            WHEN age BETWEEN 16 AND 25 THEN '16-25'
+            WHEN age BETWEEN 26 AND 40 THEN '26-40'
             ELSE '40+' 
         END AS age_category
     FROM 
-        public.customers
-),
-age_counts AS (
-    SELECT 
-        age_category,
-        COUNT(*) AS count
-    FROM 
-        age_groups
-    GROUP BY 
-        age_category
+        customers
 )
 SELECT 
     age_category,
-    count AS age_count
+    COUNT(*) AS age_count
 FROM 
-    age_counts
+    age_groups
+GROUP BY 
+    age_category
 ORDER BY 
     CASE 
         WHEN age_category = '16-25' THEN 1
@@ -167,16 +155,18 @@ ORDER BY
     END;
 
 /*
-Получение количества уникальных покупателей и выручки, которую они принесли.
+Получение количества уникальных покупателей и выручки, которую они принесли
 */
 WITH incomes AS (
     SELECT 
-        s.sales_id,
-        (s.quantity * p.price) AS income
+        s.customer_id,
+        SUM(s.quantity * p.price) AS income
     FROM 
         sales s
     LEFT JOIN 
         products p ON s.product_id = p.product_id
+    GROUP BY 
+        s.customer_id
 ), 
 selling_month AS (
     SELECT 
@@ -189,13 +179,13 @@ selling_month AS (
 SELECT 
     CONCAT(sm.year, '-', LPAD(sm.month::text, 2, '0')) AS selling_month,
     COUNT(DISTINCT s.customer_id) AS total_customers,
-    FLOOR(SUM(inc.income)) AS income
+    FLOOR(SUM(inc.income)) AS total_income
 FROM 
     sales s
 LEFT JOIN 
     selling_month AS sm ON s.sales_id = sm.sales_id
 LEFT JOIN 
-    incomes inc ON s.sales_id = inc.sales_id
+    incomes inc ON s.customer_id = inc.customer_id
 GROUP BY 
     sm.year, sm.month
 ORDER BY 
@@ -207,17 +197,17 @@ ORDER BY
 WITH first_purchase AS (
     SELECT 
         s.customer_id,
-        MIN(s.sale_date) AS first_purchase_date  -- Самая ранняя дата покупки с нулевой стоимостью
+        MIN(s.sale_date) AS first_purchase_date
     FROM 
         sales s
     JOIN 
         products p ON s.product_id = p.product_id
     WHERE 
-        p.price = 0  -- Фильтруем акционные товары
+        p.price = 0
     GROUP BY 
         s.customer_id
 ), 
-tab2 AS (
+purchase_info AS (
     SELECT 
         CONCAT(c.first_name, ' ', c.last_name) AS customer,
         fp.first_purchase_date AS sale_date,
@@ -233,15 +223,13 @@ tab2 AS (
     LEFT JOIN 
         products p ON s.product_id = p.product_id
     WHERE 
-        p.price = 0  
-    ORDER BY 
-        c.customer_id
+        p.price = 0
 )
 SELECT 
     customer,
     sale_date,
     seller
 FROM 
-    tab2
-GROUP BY 
-    customer, sale_date, seller;
+    purchase_info
+ORDER BY 
+    customer, sale_date;
