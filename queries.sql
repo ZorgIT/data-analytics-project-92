@@ -250,9 +250,9 @@ employee_info AS (
 
 purchase_info AS (
     SELECT DISTINCT
-        ci.customer_name AS customer,
-        fp.first_purchase_date AS sale_date,
-        ei.seller_name AS seller
+        ci.customer_name AS customer_name,
+        fp.first_purchase_date AS first_purchase_date,
+        ei.seller_name AS seller_name
     FROM
         first_purchase AS fp
     JOIN
@@ -269,10 +269,10 @@ purchase_info AS (
 )
 
 SELECT
-    purchase_info.customer,
-    purchase_info.sale_date,
-    purchase_info.seller
+    pi.customer_name,
+    pi.first_purchase_date,
+    pi.seller_name
 FROM
-    purchase_info
+    purchase_info AS pi
 ORDER BY
-    purchase_info.customer, purchase_info.sale_date;
+    pi.customer_name, pi.first_purchase_date;
