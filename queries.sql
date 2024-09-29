@@ -183,6 +183,51 @@ GROUP BY
 ORDER BY 
     sm.year, sm.month;
 	
+/*
+Получение информации о покупателях, первая покупка которых была в ходе проведения акций
+*/
+WITH first_purchase AS (
+    SELECT 
+        s.customer_id,
+        MIN(s.sale_date) AS first_purchase_date  -- Самая ранняя дата покупки с нулевой стоимостью
+    FROM 
+        sales s
+    JOIN 
+        products p ON s.product_id = p.product_id
+    WHERE 
+        p.price = 0  -- Фильтруем акционные товары
+    GROUP BY 
+        s.customer_id
+), 
+tab2 AS (
+    SELECT 
+        CONCAT(c.first_name, ' ', c.last_name) AS customer,
+        fp.first_purchase_date AS sale_date,
+        CONCAT(e.first_name, ' ', e.last_name) AS seller
+    FROM 
+        first_purchase fp
+    JOIN 
+        sales s ON fp.customer_id = s.customer_id AND fp.first_purchase_date = s.sale_date
+    LEFT JOIN 
+        customers c ON s.customer_id = c.customer_id
+    LEFT JOIN 
+        employees e ON s.sales_person_id = e.employee_id
+    LEFT JOIN 
+        products p ON s.product_id = p.product_id
+    WHERE 
+        p.price = 0  
+    ORDER BY 
+        c.customer_id
+)
+SELECT 
+    customer,
+    sale_date,
+    seller
+FROM 
+    tab2
+GROUP BY 
+    customer, sale_date, seller;
+	
 
 
 	
