@@ -256,7 +256,8 @@ purchase_info AS (
     FROM
         first_purchase AS fp
     JOIN
-        sales AS s ON fp.customer_id = s.customer_id
+        sales AS s
+        ON fp.customer_id = s.customer_id
         AND fp.first_purchase_date = s.sale_date
     LEFT JOIN
         customer_info AS ci ON s.customer_id = ci.customer_id
