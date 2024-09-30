@@ -224,7 +224,7 @@ WITH first_purchase AS (
         MIN(sl.sale_date) AS first_purchase_date
     FROM
         sales AS sl
-    JOIN
+    LEFT JOIN
         products AS pr ON sl.product_id = pr.product_id
     WHERE
         pr.price = 0
@@ -255,7 +255,7 @@ purchase_info AS (
         ei.seller_name AS seller_name
     FROM
         first_purchase AS fp
-    JOIN
+    INNER JOIN
         sales AS s
         ON
             fp.customer_id = s.customer_id
